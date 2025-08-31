@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  processor:
+    container_name: ${PROJECT_NAME}-processor
+    build: .
+    ports:
+      - "9010:9010"
+    environment:
+      - PYTHONPATH=/srv/app
+    volumes:
+      - ./api:/srv/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - api_network
+
+networks:
+  api_network:
+    name: substream-network
+    external: true
