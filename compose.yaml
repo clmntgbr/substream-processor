@@ -14,9 +14,24 @@ services:
       - ./api:/srv/app
     restart: unless-stopped
     networks:
-      - api_network
+      - substream-network
+
+  processor-worker:
+    container_name: ${PROJECT_NAME}-processor-worker
+    build: .
+    env_file:
+        - .env
+    ports:
+      - "9011:9010"
+    environment:
+      - PYTHONPATH=/srv/app
+    volumes:
+      - ./api:/srv/app
+    restart: unless-stopped
+    command: celery -A task.celery worker --loglevel=info --queues=get_video_task
+    networks:
+      - substream-network
 
 networks:
-  api_network:
-    name: substream-network
+  substream-network:
     external: true

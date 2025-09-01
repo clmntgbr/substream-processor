@@ -10,3 +10,4 @@ class Config:
     S3_ENDPOINT = os.getenv("S3_ENDPOINT")
     S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
     S3_REGION = os.getenv("S3_REGION")
+    RABBITMQ_URL = os.getenv("RABBITMQ_URL")
