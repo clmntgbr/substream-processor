@@ -9,6 +9,8 @@ from s3_client import S3Client
 from file_client import FileClient
 from task import get_video_task
 from models import GetVideoRequest
+from auth import verify_token
+from fastapi import Depends
 
 import requests
 import yt_dlp
@@ -22,10 +24,9 @@ file_client = FileClient()
 router = APIRouter(prefix="/api/download", tags=["video"])
 
 @router.post("/video/url")
-def get_video_from_url(request: GetVideoRequest):
+def get_video_from_url(request: GetVideoRequest, authenticated: bool = Depends(verify_token)):
     print(f"Starting download for stream_id: {request.stream_id}")
 
-    task_id = str(uuid.uuid4())
     get_video_task.delay(request.url, request.stream_id)
 
     return {
