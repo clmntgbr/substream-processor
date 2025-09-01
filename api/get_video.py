@@ -40,6 +40,7 @@ def get_video_from_url(request: GetVideoRequest):
     # Traitement synchrone direct
     try:
         result = process_video_download(request)
+        
         return {
             "status": "completed", 
             "stream_id": request.stream_id,
@@ -93,6 +94,7 @@ def process_video_download(request: GetVideoRequest):
         if not s3_client.upload_file(output_path, f"{request.stream_id}/{video_id}.mp4"):
             raise Exception("Failed to upload video to S3")
         
+
         print(f"Starting local file deletion for {request.stream_id}")
         if not file_client.delete_file(output_path):
             raise Exception("Failed to delete video file")
