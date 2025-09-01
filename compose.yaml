@@ -4,6 +4,8 @@ services:
   processor:
     container_name: ${PROJECT_NAME}-processor
     build: .
+    env_file:
+        - .env
     ports:
       - "9010:9010"
     environment:
@@ -11,12 +13,6 @@ services:
     volumes:
       - ./api:/srv/app
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9010/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     networks:
       - api_network
 

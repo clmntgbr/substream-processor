@@ -7,14 +7,14 @@ from datetime import datetime
 import os
 import requests
 from pathlib import Path
-from download_video import router as download_video
+from get_video import router as get_video
 
 app = FastAPI(
     title="Substream Processor API",
     version="1.0.0"
 )
 
-app.include_router(download_video)
+app.include_router(get_video)
 
 @app.get("/status")
 async def root():
