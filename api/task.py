@@ -3,8 +3,9 @@ from config import Config
 from kombu import Queue
 from s3_client import S3Client
 from file_client import FileClient
-from models import GetVideoResponse
+from models import GetVideoResponse, GetVideoFailureResponse
 
+import requests
 import yt_dlp
 import os
 import uuid
@@ -37,33 +38,54 @@ file_client = FileClient()
 def get_video_task(url: str, stream_id: str):
     print(f"Processing download for {stream_id}")
 
-    format = "bestvideo[height<=720]+bestaudio/best[height<=720]"
-    video_id = str(uuid.uuid4())
-    output_path = f"/tmp/{video_id}.mp4"
+    try:
+        format = "bestvideo[height<=720]+bestaudio/best[height<=720]"
+        video_id = str(uuid.uuid4())
+        output_path = f"/tmp/{video_id}.mp4"
 
-    ydl_opts = {
-        "format": format,
-        "outtmpl": output_path,
-        "merge_output_format": "mp4",
-    }
+        ydl_opts = {
+            "format": format,
+            "outtmpl": output_path,
+            "merge_output_format": "mp4",
+        }
 
-    video_info = get_video_info(format, url)
-    download_video(ydl_opts, url)
-    file_size = get_file_size(output_path)
+        video_info = get_video_info(format, url)
+        download_video(ydl_opts, url)
+        file_size = get_file_size(output_path)
 
-    response = GetVideoResponse(
-        file_name=f"{video_id}.mp4",
-        original_name=video_info.get("title") + ".mp4",
-        mime_type="video/mp4",
-        size=file_size,
-        stream_id=stream_id,
-    )
+        response = GetVideoResponse(
+            file_name=f"{video_id}.mp4",
+            original_name=video_info.get("title") + ".mp4",
+            mime_type="video/mp4",
+            size=file_size,
+            stream_id=stream_id,
+        )
 
-    if not s3_client.upload_file(output_path, f"{stream_id}/{video_id}.mp4"):
-        raise Exception("Failed to upload video to S3")
+        if not s3_client.upload_file(output_path, f"{stream_id}/{video_id}.mp4"):
+            raise Exception("Failed to upload video to S3")
 
-    if not file_client.delete_file(output_path):
-        raise Exception("Failed to delete video file")
+        if not file_client.delete_file(output_path):
+            raise Exception("Failed to delete video file")
+
+        requests.post(
+            Config.SUBSTREAM_API_URL + "/processor/get-video",
+            json=response.dict(),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": Config.PROCESSOR_TOKEN
+            }
+        )
+    except Exception as e:
+        requests.post(
+            Config.SUBSTREAM_API_URL + "/processor/get-video-failure",
+            json=GetVideoFailureResponse(
+                stream_id=stream_id,
+            ).dict(),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": Config.PROCESSOR_TOKEN
+            }
+        )
 
 def download_video(ydl_opts, url):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
