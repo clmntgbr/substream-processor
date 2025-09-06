@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
+    ASSEMBLY_AI_API_KEY: str = os.getenv("ASSEMBLY_AI_API_KEY")
     SUBSTREAM_API_URL: str = os.getenv("SUBSTREAM_API_URL")
     PROCESSOR_TOKEN: str = os.getenv("PROCESSOR_TOKEN")
     S3_ACCESS_KEY: str = os.getenv("S3_ACCESS_KEY")

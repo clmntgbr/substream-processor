@@ -7,8 +7,8 @@ from pydantic import BaseModel
 from config import Config
 from s3_client import S3Client
 from file_client import FileClient
-from get_video_task import get_video_task
-from models import GetVideoRequest
+from extract_sound_task import extract_sound_task
+from models import ExtractSoundRequest
 from auth import verify_token
 from fastapi import Depends
 
@@ -21,13 +21,13 @@ import subprocess
 s3_client = S3Client(Config)
 file_client = FileClient()
 
-router = APIRouter(prefix="/api", tags=["video"])
+router = APIRouter(prefix="/api", tags=["sound"])
 
-@router.post("/download/video/url")
-def get_video_from_url(request: GetVideoRequest, authenticated: bool = Depends(verify_token)):
-    print(f"Starting download for stream_id: {request.stream_id}")
+@router.post("/extract-sound")
+def extract_sound(request: ExtractSoundRequest, authenticated: bool = Depends(verify_token)):
+    print(f"Starting extract sound for stream_id: {request.stream_id}")
 
-    get_video_task.delay(request.url, request.stream_id)
+    extract_sound_task.delay(request.stream_id, request.stream_file_name)
 
     return {
         "stream_id": request.stream_id,

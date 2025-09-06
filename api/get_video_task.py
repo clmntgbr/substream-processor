@@ -3,12 +3,15 @@ from config import Config
 from kombu import Queue
 from s3_client import S3Client
 from file_client import FileClient
-from models import GetVideoResponse, GetVideoFailureResponse
+from pydub import AudioSegment
+from models import GetVideoResponse, GetVideoFailureResponse, ExtractSoundResponse, ExtractSoundFailureResponse
 
+import re
 import requests
 import yt_dlp
 import os
 import uuid
+import ffmpeg
 
 celery = Celery(
     "tasks",
@@ -34,13 +37,15 @@ celery.conf.update(
 s3_client = S3Client(Config)
 file_client = FileClient()
 
+# Get video task
+
 @celery.task(name="tasks.get_video_task", queue='get_video_task')
 def get_video_task(url: str, stream_id: str):
     print(f"Processing download for {stream_id}")
 
     try:
         format = "bestvideo[height<=720]+bestaudio/best[height<=720]"
-        video_id = str(uuid.uuid4())
+        video_id = stream_id
         output_path = f"/tmp/{video_id}.mp4"
 
         ydl_opts = {
@@ -68,7 +73,7 @@ def get_video_task(url: str, stream_id: str):
             raise Exception("Failed to delete video file")
 
         requests.post(
-            Config.SUBSTREAM_API_URL + "/processor/get-video",
+            Config.SUBSTREAM_API_URL + "/processor/get-video-url",
             json=response.dict(),
             headers={
                 "Content-Type": "application/json",
@@ -77,7 +82,7 @@ def get_video_task(url: str, stream_id: str):
         )
     except Exception as e:
         requests.post(
-            Config.SUBSTREAM_API_URL + "/processor/get-video-failure",
+            Config.SUBSTREAM_API_URL + "/processor/get-video-url-failure",
             json=GetVideoFailureResponse(
                 stream_id=stream_id,
             ).dict(),

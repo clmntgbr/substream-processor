@@ -14,3 +14,26 @@ class GetVideoResponse(BaseModel):
 
 class GetVideoFailureResponse(BaseModel):
     stream_id: str
+
+class ExtractSoundRequest(BaseModel):
+    stream_id: str
+    stream_file_name: str
+
+class ExtractSoundResponse(BaseModel):
+    audio_files: list[str]
+    stream_id: str
+
+class ExtractSoundFailureResponse(BaseModel):
+    stream_id: str
+
+class GenerateSubtitlesRequest(BaseModel):
+    stream_id: str
+    audio_files: list[str]
+
+class GenerateSubtitlesResponse(BaseModel):
+    subtitle_file: str
+    subtitle_files: list[str]
+    stream_id: str
+
+class GenerateSubtitlesFailureResponse(BaseModel):
+    stream_id: str

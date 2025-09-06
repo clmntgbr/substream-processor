@@ -16,8 +16,8 @@ services:
     networks:
       - substream-network
 
-  processor-worker:
-    container_name: ${PROJECT_NAME}-processor-worker
+  get-video-task:
+    container_name: ${PROJECT_NAME}-get-video-task
     build: .
     env_file:
         - .env
@@ -28,7 +28,39 @@ services:
     volumes:
       - ./api:/srv/app
     restart: unless-stopped
-    command: celery -A task.celery worker --loglevel=info --queues=get_video_task
+    command: celery -A get_video_task.celery worker --loglevel=info --queues=get_video_task
+    networks:
+      - substream-network
+
+  extract-sound-task:
+    container_name: ${PROJECT_NAME}-extract-sound-task
+    build: .
+    env_file:
+        - .env
+    ports:
+      - "9012:9010"
+    environment:
+      - PYTHONPATH=/srv/app
+    volumes:
+      - ./api:/srv/app
+    restart: unless-stopped
+    command: celery -A extract_sound_task.celery worker --loglevel=info --queues=extract_sound_task
+    networks:
+      - substream-network
+
+  generate-subtitles-task:
+    container_name: ${PROJECT_NAME}-generate-subtitles-task
+    build: .
+    env_file:
+        - .env
+    ports:
+      - "9013:9010"
+    environment:
+      - PYTHONPATH=/srv/app
+    volumes:
+      - ./api:/srv/app
+    restart: unless-stopped
+    command: celery -A generate_subtitles_task.celery worker --loglevel=info --queues=generate_subtitles_task
     networks:
       - substream-network
 
