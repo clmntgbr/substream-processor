@@ -9,3 +9,4 @@ boto3==1.36.14
 celery==5.3.1
 pydub==0.25.1
 assemblyai==0.37.0
+python-dotenv==1.0.0

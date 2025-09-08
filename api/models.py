@@ -31,9 +31,19 @@ class GenerateSubtitlesRequest(BaseModel):
     audio_files: list[str]
 
 class GenerateSubtitlesResponse(BaseModel):
-    subtitle_file: str
-    subtitle_files: list[str]
+    subtitle_srt_file: str
+    subtitle_srt_files: list[str]
     stream_id: str
 
 class GenerateSubtitlesFailureResponse(BaseModel):
+    stream_id: str
+
+class TransformSubtitlesRequest(BaseModel):
+    stream_id: str
+    subtitle_srt_file: str
+
+class TransformSubtitlesResponse(BaseModel):
+    stream_id: str
+
+class TransformSubtitlesFailureResponse(BaseModel):
     stream_id: str

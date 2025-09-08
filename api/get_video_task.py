@@ -72,6 +72,9 @@ def get_video_task(url: str, stream_id: str):
         if not file_client.delete_file(output_path):
             raise Exception("Failed to delete video file")
 
+        print(f"Sending get video success response to processor for {stream_id}")
+        print(response.dict())
+
         requests.post(
             Config.SUBSTREAM_API_URL + "/processor/get-video-url",
             json=response.dict(),
@@ -81,6 +84,8 @@ def get_video_task(url: str, stream_id: str):
             }
         )
     except Exception as e:
+        print(f"Sending get video failure response to processor for {stream_id}")
+
         requests.post(
             Config.SUBSTREAM_API_URL + "/processor/get-video-url-failure",
             json=GetVideoFailureResponse(

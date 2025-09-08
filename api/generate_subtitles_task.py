@@ -73,25 +73,25 @@ def generate_subtitles_task(stream_id: str, audio_files: list[str]):
         if not file_client.delete_file(output_srt_path):
             raise Exception()
 
-        print(GenerateSubtitlesResponse(
-                subtitle_file=f"{stream_id}.srt",
-                stream_id=stream_id,
-            ).dict()
+        response = GenerateSubtitlesResponse(
+            subtitle_srt_file=f"{stream_id}.srt",
+            subtitle_srt_files=results_sorted,
+            stream_id=stream_id,
         )
+
+        print(f"Sending generate subtitles success response to processor for {stream_id}")
+        print(response.dict())
 
         requests.post(
             Config.SUBSTREAM_API_URL + "/processor/generate-subtitles",
-            json=GenerateSubtitlesResponse(
-                subtitle_file=f"{stream_id}.srt",
-                subtitle_files=results_sorted,
-                stream_id=stream_id,
-            ).dict(),
+            json=response.dict(),
             headers={
                 "Content-Type": "application/json",
                 "Authorization": Config.PROCESSOR_TOKEN
             }
         )
     except Exception as e:
+        print(f"Sending generate subtitles failure response to processor for {stream_id}")
         requests.post(
             Config.SUBSTREAM_API_URL + "/processor/generate-subtitles-failure",
             json=GenerateSubtitlesFailureResponse(

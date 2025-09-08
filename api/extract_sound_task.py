@@ -74,18 +74,25 @@ def extract_sound_task(stream_id: str, stream_file_name: str):
 
         results_sorted = sorted(chunk_filenames, key=extract_chunk_number)
 
+        response = ExtractSoundResponse(
+            audio_files=results_sorted,
+            stream_id=stream_id,
+        )
+
+        print(f"Sending extract sound success response to processor for {stream_id}")
+        print(response.dict())
+
         requests.post(
             Config.SUBSTREAM_API_URL + "/processor/extract-sound",
-            json=ExtractSoundResponse(
-                audio_files=results_sorted,
-                stream_id=stream_id,
-            ).dict(),
+            json=response.dict(),
             headers={
                 "Content-Type": "application/json",
                 "Authorization": Config.PROCESSOR_TOKEN
             }
         )
     except Exception as e:
+        print(f"Sending extract sound failure response to processor for {stream_id}")
+
         requests.post(
             Config.SUBSTREAM_API_URL + "/processor/extract-sound-failure",
             json=ExtractSoundFailureResponse(
