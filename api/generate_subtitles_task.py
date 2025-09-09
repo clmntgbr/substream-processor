@@ -52,14 +52,15 @@ def generate_subtitles_task(stream_id: str, audio_files: list[str]):
         subtitle_index = 1
         merged_subtitles = []
         for file in results_sorted:
-            parse_subtitles = parse_srt(file)
+            output_path = f"/tmp/{file}"
+            parse_subtitles = parse_srt(output_path)
             for _, timestamps, text in parse_subtitles:
                 new_timestamps = shift_timestamps(timestamps, current_offset)
                 merged_subtitles.append(f"{subtitle_index}\n{new_timestamps}\n{text}\n\n")
                 subtitle_index += 1
 
             current_offset += 300
-            file_client.delete_file(file)
+            file_client.delete_file(output_path)
 
         s3_srt_key = f"{stream_id}/{stream_id}.srt"
         output_srt_path = f"/tmp/{stream_id}.srt"
@@ -119,7 +120,7 @@ def multiprocess(chunk: str, stream_id: str):
     if not s3_client.upload_file(srt_output_path, f"{stream_id}/subtitles/{chunk_name}"):
         raise Exception()
 
-    return srt_output_path
+    return chunk_name
 
 def extract_chunk_number(item):
     match = re.search(r"_(\d+)\.srt$", item[0])

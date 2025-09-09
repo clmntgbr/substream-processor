@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api", tags=["subtitles"])
 def transform_subtitles(request: TransformSubtitlesRequest, authenticated: bool = Depends(verify_token)):
     print(f"Starting transform subtitles for stream_id: {request.stream_id}")
 
-    transform_subtitles_task.delay(request.stream_id, request.subtitle_file)
+    transform_subtitles_task.delay(request.stream_id, request.subtitle_srt_file, request.options.model_dump())
 
     return {
         "stream_id": request.stream_id,

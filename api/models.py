@@ -38,12 +38,29 @@ class GenerateSubtitlesResponse(BaseModel):
 class GenerateSubtitlesFailureResponse(BaseModel):
     stream_id: str
 
+class TransformSubtitlesOptionsRequest(BaseModel):
+    subtitle_font: str
+    subtitle_size: int
+    subtitle_color: str
+    subtitle_bold: bool
+    subtitle_italic: bool
+    subtitle_underline: bool
+    subtitle_outline_color: str
+    subtitle_outline_thickness: int
+    subtitle_shadow: int
+    subtitle_shadow_color: str
+    video_format: str
+    video_parts: int
+    y_axis_alignment: float
+
 class TransformSubtitlesRequest(BaseModel):
     stream_id: str
     subtitle_srt_file: str
+    options: TransformSubtitlesOptionsRequest
 
 class TransformSubtitlesResponse(BaseModel):
     stream_id: str
+    subtitle_ass_file: str
 
 class TransformSubtitlesFailureResponse(BaseModel):
     stream_id: str
