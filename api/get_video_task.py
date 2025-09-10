@@ -60,7 +60,7 @@ def get_video_task(url: str, stream_id: str):
 
         response = GetVideoResponse(
             file_name=f"{video_id}.mp4",
-            original_name=video_info.get("title") + ".mp4",
+            original_file_name=video_info.get("title") + ".mp4",
             mime_type="video/mp4",
             size=file_size,
             stream_id=stream_id,

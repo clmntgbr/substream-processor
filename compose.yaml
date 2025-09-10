@@ -64,8 +64,8 @@ services:
     networks:
       - substream-network
 
-  transform-subtitles-task:
-    container_name: ${PROJECT_NAME}-transform-subtitles-task
+  transform-subtitle-task:
+    container_name: ${PROJECT_NAME}-transform-subtitle-task
     build: .
     env_file:
         - .env
@@ -76,7 +76,23 @@ services:
     volumes:
       - ./api:/srv/app
     restart: unless-stopped
-    command: celery -A transform_subtitles_task.celery worker --loglevel=info --queues=transform_subtitles_task
+    command: celery -A transform_subtitle_task.celery worker --loglevel=info --queues=transform_subtitle_task
+    networks:
+      - substream-network
+
+  transform-video-task:
+    container_name: ${PROJECT_NAME}-transform-video-task
+    build: .
+    env_file:
+        - .env
+    ports:
+      - "9015:9010"
+    environment:
+      - PYTHONPATH=/srv/app
+    volumes:
+      - ./api:/srv/app
+    restart: unless-stopped
+    command: celery -A transform_video_task.celery worker --loglevel=info --queues=transform_video_task
     networks:
       - substream-network
 

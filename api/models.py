@@ -7,7 +7,7 @@ class GetVideoRequest(BaseModel):
 
 class GetVideoResponse(BaseModel):
     file_name: str
-    original_name: str
+    original_file_name: str
     mime_type: str
     size: int
     stream_id: str
@@ -17,7 +17,7 @@ class GetVideoFailureResponse(BaseModel):
 
 class ExtractSoundRequest(BaseModel):
     stream_id: str
-    stream_file_name: str
+    file_name: str
 
 class ExtractSoundResponse(BaseModel):
     audio_files: list[str]
@@ -38,7 +38,7 @@ class GenerateSubtitlesResponse(BaseModel):
 class GenerateSubtitlesFailureResponse(BaseModel):
     stream_id: str
 
-class TransformSubtitlesOptionsRequest(BaseModel):
+class TransformSubtitleOptionsRequest(BaseModel):
     subtitle_font: str
     subtitle_size: int
     subtitle_color: str
@@ -49,18 +49,32 @@ class TransformSubtitlesOptionsRequest(BaseModel):
     subtitle_outline_thickness: int
     subtitle_shadow: int
     subtitle_shadow_color: str
-    video_format: str
-    video_parts: int
     y_axis_alignment: float
 
-class TransformSubtitlesRequest(BaseModel):
+class TransformSubtitleRequest(BaseModel):
     stream_id: str
     subtitle_srt_file: str
-    options: TransformSubtitlesOptionsRequest
+    options: TransformSubtitleOptionsRequest
 
-class TransformSubtitlesResponse(BaseModel):
+class TransformSubtitleResponse(BaseModel):
     stream_id: str
     subtitle_ass_file: str
 
-class TransformSubtitlesFailureResponse(BaseModel):
+class TransformSubtitleFailureResponse(BaseModel):
+    stream_id: str
+
+class TransformVideoOptionsRequest(BaseModel):
+    video_format: str
+    video_parts: int
+
+class TransformVideoRequest(BaseModel):
+    stream_id: str
+    file_name: str
+    options: TransformVideoOptionsRequest
+
+class TransformVideoResponse(BaseModel):
+    stream_id: str
+    file_name_transformed: str
+
+class TransformVideoFailureResponse(BaseModel):
     stream_id: str

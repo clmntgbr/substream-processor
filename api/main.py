@@ -10,7 +10,8 @@ from pathlib import Path
 from get_video import router as get_video
 from extract_sound import router as extract_sound
 from generate_subtitles import router as generate_subtitles
-from transform_subtitles import router as transform_subtitles
+from transform_subtitle import router as transform_subtitle
+from transform_video import router as transform_video
 
 app = FastAPI(
     title="Substream Processor API",
@@ -20,7 +21,8 @@ app = FastAPI(
 app.include_router(get_video)
 app.include_router(extract_sound)
 app.include_router(generate_subtitles)
-app.include_router(transform_subtitles)
+app.include_router(transform_subtitle)
+app.include_router(transform_video)
 
 @app.get("/status")
 async def root():

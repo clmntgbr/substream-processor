@@ -4,7 +4,7 @@ from config import Config
 from kombu import Queue
 from s3_client import S3Client
 from file_client import FileClient
-from models import TransformSubtitlesOptionsRequest, TransformSubtitlesResponse, TransformSubtitlesFailureResponse
+from models import TransformSubtitleOptionsRequest, TransformSubtitleResponse, TransformSubtitleFailureResponse
 
 import re
 import requests
@@ -20,11 +20,11 @@ celery.conf.update(
         "accept_content": ["json"],
         "broker_connection_retry_on_startup": True,
         "task_routes": {
-            "tasks.transform_subtitles_task": {"queue": "transform_subtitles_task"},
+            "tasks.transform_subtitle_task": {"queue": "transform_subtitle_task"},
         },
         "task_queues": [
             Queue(
-                "transform_subtitles_task", routing_key="transform_subtitles_task"
+                "transform_subtitle_task", routing_key="transform_subtitle_task"
             )
         ],
     }
@@ -33,11 +33,13 @@ celery.conf.update(
 s3_client = S3Client(Config)
 file_client = FileClient()
 
-@celery.task(name="tasks.transform_subtitles_task", queue='transform_subtitles_task')
-def transform_subtitles_task(stream_id: str, subtitle_srt_file: str, options: TransformSubtitlesOptionsRequest):
+@celery.task(name="tasks.transform_subtitle_task", queue='transform_subtitle_task')
+def transform_subtitle_task(stream_id: str, subtitle_srt_file: str, options: TransformSubtitleOptionsRequest):
     try:
-        print(f"Processing transform subtitles for {stream_id}")
-        options = TransformSubtitlesOptionsRequest(**options)
+        print(f"Processing transform subtitle for {stream_id}")
+        options = TransformSubtitleOptionsRequest(**options)
+
+        print(options)
         
         s3_srt_key = f"{stream_id}/{subtitle_srt_file}"
         output_srt_path = f"/tmp/{subtitle_srt_file}"
@@ -79,16 +81,16 @@ def transform_subtitles_task(stream_id: str, subtitle_srt_file: str, options: Tr
         file_client.delete_file(output_ass_path)
         file_client.delete_file(output_srt_path)
 
-        response = TransformSubtitlesResponse(
+        response = TransformSubtitleResponse(
             subtitle_ass_file=ass_file_name,
             stream_id=stream_id,
         )
 
-        print(f"Sending transform subtitles success response to processor for {stream_id}")
+        print(f"Sending transform subtitle success response to processor for {stream_id}")
         print(response.dict())
 
         requests.post(
-            Config.SUBSTREAM_API_URL + "/processor/transform-subtitles",
+            Config.SUBSTREAM_API_URL + "/processor/transform-subtitle",
             json=response.dict(),
             headers={
                 "Content-Type": "application/json",
@@ -96,10 +98,10 @@ def transform_subtitles_task(stream_id: str, subtitle_srt_file: str, options: Tr
             }
         )
     except Exception as e:
-        print(f"Sending transform subtitles failure response to processor for {stream_id}")
+        print(f"Sending transform subtitle failure response to processor for {stream_id}")
         requests.post(
-            Config.SUBSTREAM_API_URL + "/processor/transform-subtitles-failure",
-            json=TransformSubtitlesFailureResponse(
+            Config.SUBSTREAM_API_URL + "/processor/transform-subtitle-failure",
+            json=TransformSubtitleFailureResponse(
                 stream_id=stream_id,
             ).dict(),
             headers={
@@ -122,7 +124,7 @@ def split_lines(text, max_words=4):
         else text
     )
 
-def get_ass_header(options: TransformSubtitlesOptionsRequest):
+def get_ass_header(options: TransformSubtitleOptionsRequest):
     return f"""
 [Script Info]
 ScriptType: v4.00+

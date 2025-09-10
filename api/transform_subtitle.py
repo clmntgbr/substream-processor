@@ -7,8 +7,8 @@ from pydantic import BaseModel
 from config import Config
 from s3_client import S3Client
 from file_client import FileClient
-from transform_subtitles_task import transform_subtitles_task
-from models import TransformSubtitlesRequest
+from transform_subtitle_task import transform_subtitle_task
+from models import TransformSubtitleRequest
 from auth import verify_token
 from fastapi import Depends
 
@@ -17,11 +17,11 @@ file_client = FileClient()
 
 router = APIRouter(prefix="/api", tags=["subtitles"])
 
-@router.post("/transform-subtitles")
-def transform_subtitles(request: TransformSubtitlesRequest, authenticated: bool = Depends(verify_token)):
-    print(f"Starting transform subtitles for stream_id: {request.stream_id}")
+@router.post("/transform-subtitle")
+def transform_subtitle(request: TransformSubtitleRequest, authenticated: bool = Depends(verify_token)):
+    print(f"Starting transform subtitle for stream_id: {request.stream_id}")
 
-    transform_subtitles_task.delay(request.stream_id, request.subtitle_srt_file, request.options.model_dump())
+    transform_subtitle_task.delay(request.stream_id, request.subtitle_srt_file, request.options.model_dump())
 
     return {
         "stream_id": request.stream_id,
