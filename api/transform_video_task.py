@@ -53,9 +53,9 @@ def transform_video_task(stream_id: str, file_name: str, options: TransformVideo
 
     if options.video_format == "zoomed_916":
         if not transform_video_to_zoomed_916(output_path, output_path_transformed):
-            raise Exception("Failed to transform video to zoomed 9:16 format")
+            raise Exception("Failed to transform video to TikTok format")
 
-    if not s3_client.upload_file(output_path, s3_key_transformed):
+    if not s3_client.upload_file(output_path_transformed, s3_key_transformed):
         raise Exception("Failed to upload transformed video to S3")
 
     if not file_client.delete_file(output_path):
@@ -83,9 +83,13 @@ def transform_video_to_zoomed_916(input_path: str, output_path: str) -> bool:
         
         max_width = 1080
         max_height = 1920
+
         target_aspect_ratio = max_width / max_height
-        
         original_aspect_ratio = original_width / original_height
+
+        print(f"Original width: {original_width}, Original height: {original_height}")
+        print(f"Target width: {max_width}, Target height: {max_height}")
+        print(f"Original aspect ratio: {original_aspect_ratio}, Target aspect ratio: {target_aspect_ratio}")
         
         if abs(original_aspect_ratio - target_aspect_ratio) < 0.01:
             if original_width <= max_width and original_height <= max_height:
@@ -102,12 +106,14 @@ def transform_video_to_zoomed_916(input_path: str, output_path: str) -> bool:
                         output_path,
                         vcodec='libx264',
                         acodec='aac',
-                        preset='fast',
-                        crf=23,
-                        maxrate='4M',
-                        bufsize='8M',
+                        preset='ultrafast',     # Plus rapide
+                        crf=28,                # Qualité plus basse
+                        maxrate='2M',          # Bitrate plus bas
+                        bufsize='4M',
                         pix_fmt='yuv420p',
-                        movflags='faststart'
+                        movflags='faststart',
+                        threads=0,             # Multi-thread
+                        x264opts='threads=0'
                     )
                     .overwrite_output()
                     .run()
@@ -130,6 +136,7 @@ def transform_video_to_zoomed_916(input_path: str, output_path: str) -> bool:
             crop_y = y_offset
         
         if crop_width <= max_width and crop_height <= max_height:
+            print("Video is already in correct 9:16 format and resolution, cropping without re-encoding")
             (
                 ffmpeg
                 .input(input_path)
@@ -138,17 +145,20 @@ def transform_video_to_zoomed_916(input_path: str, output_path: str) -> bool:
                     output_path,
                     vcodec='libx264',
                     acodec='aac',
-                    preset='fast',
-                    crf=23,
-                    maxrate='4M',
-                    bufsize='8M',
+                    preset='ultrafast',     # Plus rapide
+                    crf=28,                # Qualité plus basse
+                    maxrate='2M',          # Bitrate plus bas
+                    bufsize='4M',
                     pix_fmt='yuv420p',
-                    movflags='faststart'
+                    movflags='faststart',
+                    threads=0,             # Multi-thread
+                    x264opts='threads=0'
                 )
                 .overwrite_output()
                 .run()
             )
         else:
+            print("Video is 9:16 but too large, cropping and scaling down to max 1080x1920")
             (
                 ffmpeg
                 .input(input_path)
@@ -158,12 +168,14 @@ def transform_video_to_zoomed_916(input_path: str, output_path: str) -> bool:
                     output_path,
                     vcodec='libx264',
                     acodec='aac',
-                    preset='fast',
-                    crf=23,
-                    maxrate='4M',
-                    bufsize='8M',
+                    preset='ultrafast',     # Plus rapide
+                    crf=28,                # Qualité plus basse
+                    maxrate='2M',          # Bitrate plus bas
+                    bufsize='4M',
                     pix_fmt='yuv420p',
-                    movflags='faststart'
+                    movflags='faststart',
+                    threads=0,             # Multi-thread
+                    x264opts='threads=0'
                 )
                 .overwrite_output()
                 .run()
